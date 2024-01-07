@@ -1,0 +1,26 @@
+name: utils
+description: Restaurant Helper utils package
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.2.2'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  shared_preferences: ^2.2.0
+  hooks_riverpod: ^2.1.3
+  fluttertoast: ^8.2.4
+  flutter_hooks: ^0.20.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^3.0.1
+  riverpod_lint: ^2.3.7
+  custom_lint: ^0.5.7
+  
+flutter:
+  uses-material-design: true
