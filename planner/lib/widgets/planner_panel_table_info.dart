@@ -5,7 +5,6 @@ import 'package:planner/planner.dart';
 import 'package:utils/utils.dart';
 import 'package:auth/auth.dart';
 
-
 class PlannerPanelTableInfo extends HookConsumerWidget {
   const PlannerPanelTableInfo({super.key, required this.board});
   final PlannerTablesBoard board;
@@ -28,14 +27,20 @@ class PlannerPanelTableInfo extends HookConsumerWidget {
             iconSize: 30,
             constraints: const BoxConstraints(),
             onPressed: pressable
-                ? () => ref.read(PlannerInfoProvider(AuthType.owner).notifier)
+                ? () => ref
+                    .read(PlannerInfoProvider(AuthType.owner).notifier)
                     .modifyChairs(direction, subtract)
                 : null));
   }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tableIdController= useTextEditingController(text: board.tables[board.selectedTable!].id);
-    ref.listen(PlannerInfoProvider(AuthType.owner).select((value) => value.value!.selectedTable),(prev,next) => tableIdController.text = next.toString());
+    final tableIdController =
+        useTextEditingController(text: board.tables[board.selectedTable!].id);
+    ref.listen(
+        PlannerInfoProvider(AuthType.owner)
+            .select((value) => value.value!.selectedTable),
+        (prev, next) => tableIdController.text = next.toString());
     return Column(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -52,14 +57,18 @@ class PlannerPanelTableInfo extends HookConsumerWidget {
             TextFormField(
                 onChanged: null,
                 controller: tableIdController,
-                onEditingComplete: () => ref.read(PlannerInfoProvider(AuthType.owner).notifier).updateTableID(tableIdController),
-                onTapOutside: (event) => ref.read(PlannerInfoProvider(AuthType.owner).notifier).updateTableID(tableIdController),
+                onEditingComplete: () => ref
+                    .read(PlannerInfoProvider(AuthType.owner).notifier)
+                    .updateTableID(tableIdController),
+                onTapOutside: (event) => ref
+                    .read(PlannerInfoProvider(AuthType.owner).notifier)
+                    .updateTableID(tableIdController),
                 decoration: InputDecoration(
                   labelText: 'Identyfikator stolika (unikalny)',
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12.0)),
                 )),
-            const Padding(padding: EdgeInsets.symmetric(vertical:8)),
+            const Padding(padding: EdgeInsets.symmetric(vertical: 8)),
             SizedBox(
                 width: 160,
                 height: 260,
@@ -74,19 +83,30 @@ class PlannerPanelTableInfo extends HookConsumerWidget {
                                 border: Border.all(
                                     color: Colors.black, width: 2)))),
                     tableButton(ref, PlannerDirection.top, 50, 0),
-                    tableButton(ref, PlannerDirection.top, 80, 0, subtract: true),
+                    tableButton(ref, PlannerDirection.top, 80, 0,
+                        subtract: true),
                     tableButton(ref, PlannerDirection.left, 0, 100),
-                    tableButton(ref, PlannerDirection.left, 0, 130, subtract: true),
+                    tableButton(ref, PlannerDirection.left, 0, 130,
+                        subtract: true),
                     tableButton(ref, PlannerDirection.right, 130, 100),
-                    tableButton(ref, PlannerDirection.right, 130, 130,subtract: true),
+                    tableButton(ref, PlannerDirection.right, 130, 130,
+                        subtract: true),
                     tableButton(ref, PlannerDirection.bottom, 50, 230),
-                    tableButton(ref, PlannerDirection.bottom, 80, 230, subtract: true),
+                    tableButton(ref, PlannerDirection.bottom, 80, 230,
+                        subtract: true),
                   ],
                 )),
+            DefaultButton(
+                callback: () => ref
+                    .read(PlannerInfoProvider(AuthType.owner).notifier)
+                    .removeTable(),
+                text: "Usuń stolik"),
           ],
         ),
         DefaultButton(
-            callback: ref.read(PlannerInfoProvider(AuthType.owner).notifier).deselectTable,
+            callback: ref
+                .read(PlannerInfoProvider(AuthType.owner).notifier)
+                .deselectTable,
             text: "Zakończ zmiany")
       ],
     );

@@ -40,6 +40,24 @@ void fluttertoastDefault(String message,[bool error = false,int timeInSec = 3]) 
 
 final Future<SharedPreferences> prefs = SharedPreferences.getInstance();
 
+List<String> validatePassword(String password) {
+  final List<String> errors = List.empty(growable: true);
+  if(!RegExp(r'[!@#$%^&*(),.]').hasMatch(password)) {
+    errors.add("Hasło musi zawierać znak specjalny, tj. jeden z !@#\$%^&*(),.");
+  }
+  if(!RegExp(r'[0-9]').hasMatch(password)) {
+    errors.add("Hasło musi zawierać liczbę");
+  }
+  if(!RegExp(r'[a-z]').hasMatch(password)) {
+    errors.add("Hasło musi zawierać małą literę");
+  }
+  if(!RegExp(r'[A-Z]').hasMatch(password)) {
+    errors.add("Hasło musi zawierać dużą literę");
+  }
+  if(password.length<8) errors.add("Hasło musi zawierać conajmniej 8 znaków");
+  return errors;
+}
+
 extension EmailValidator on String {
   bool isValidEmail() {
     return RegExp(

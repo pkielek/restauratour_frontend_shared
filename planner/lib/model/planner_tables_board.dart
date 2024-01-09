@@ -8,7 +8,6 @@ import 'package:utils/utils.dart';
 import 'package:auth/auth.dart';
 import 'package:planner/planner.dart';
 
-
 part 'planner_tables_board.freezed.dart';
 part 'planner_tables_board.g.dart';
 
@@ -69,21 +68,21 @@ enum BoardAction {
 @freezed
 class PlannerTablesBoard with _$PlannerTablesBoard {
   const PlannerTablesBoard._();
-  factory PlannerTablesBoard({
-    required List<PlannerTable> tables,
-    required List<PlannerBorder> borders,
-    required double precision,
-    @JsonKey(ignore: true)
-    @Default(BoardAction.none)
-    BoardAction? currentAction,
-    @JsonKey(ignore: true) int? selectedTable,
-    @JsonKey(ignore: true) PlannerDirection? lastBorderExtension,
-    @JsonKey(ignore: true) PlannerDirection? currentBorderExtension,
-    @JsonKey(ignore: true)
-    @Default(BoxConstraints())
-    BoxConstraints constraints,
-    @JsonKey(ignore: true) @Default(false) bool isChanged
-  }) = _PlannerTablesBoard;
+  factory PlannerTablesBoard(
+          {required List<PlannerTable> tables,
+          required List<PlannerBorder> borders,
+          required double precision,
+          @JsonKey(ignore: true)
+          @Default(BoardAction.none)
+          BoardAction? currentAction,
+          @JsonKey(ignore: true) int? selectedTable,
+          @JsonKey(ignore: true) PlannerDirection? lastBorderExtension,
+          @JsonKey(ignore: true) PlannerDirection? currentBorderExtension,
+          @JsonKey(ignore: true)
+          @Default(BoxConstraints())
+          BoxConstraints constraints,
+          @JsonKey(ignore: true) @Default(false) bool isChanged}) =
+      _PlannerTablesBoard;
 
   factory PlannerTablesBoard.fromJson(Map<String, dynamic> json) =>
       _$PlannerTablesBoardFromJson(json);
@@ -102,10 +101,12 @@ class PlannerTablesBoard with _$PlannerTablesBoard {
     final PlannerObject data = isTable
         ? tables.where((element) => element.id == id).first
         : borders[int.parse(id)];
-    return doesTableNotCollide(data, id, isTable: isTable) && isTableInBounds(data);
+    return doesTableNotCollide(data, id, isTable: isTable) &&
+        isTableInBounds(data);
   }
 
-  bool doesTableNotCollide(PlannerObject data, String id, {required bool isTable}) {
+  bool doesTableNotCollide(PlannerObject data, String id,
+      {required bool isTable}) {
     for (final table in tables) {
       if ((!isTable || table.id != id) &&
           data.toNewRect(precision).overlaps(table.applyTablesToCollision(
@@ -228,26 +229,24 @@ class PlannerTablesBoard with _$PlannerTablesBoard {
 class PlannerInfo extends _$PlannerInfo {
   @override
   Future<PlannerTablesBoard> build(AuthType type, [int? restaurantID]) async {
-    if(type == AuthType.user && restaurantID == null) {
+    if (type == AuthType.user && restaurantID == null) {
       throw ArgumentError();
-    } 
+    }
     final token = ref.read(authProvider).value!;
     try {
-      final response = await Dio().get('${dotenv.env['${type.name.toUpperCase()}_API_URL']!}planner-info',
+      final response = await Dio().get(
+          '${dotenv.env['${type.name.toUpperCase()}_API_URL']!}planner-info',
           options:
               Options(headers: {"Authorization": "Bearer ${token.jwtToken}"}));
       return PlannerTablesBoard.fromJson(response.data);
     } on DioException catch (e) {
       if (e.response != null) {
         Map responseBody = e.response!.data;
-        fluttertoastDefault(responseBody['detail'], true);
+        throw responseBody['detail'];
       } else {
-        fluttertoastDefault(
-            "Coś poszło nie tak przy wczytywaniu planu restauracji. Spróbuj ponownie później",
-            true);
+        throw "Coś poszło nie tak przy wczytywaniu planu restauracji. Spróbuj ponownie później lub odśwież stronę";
       }
     }
-    return PlannerTablesBoard(precision: -1, tables: [], borders: []);
   }
 
   void updateConstraints(BoxConstraints constraints) {
@@ -280,15 +279,19 @@ class PlannerInfo extends _$PlannerInfo {
     DragEndDetails details,
   ) {
     if (type != AuthType.owner) return;
-    state = AsyncData(state.value!.copyWith(isChanged: state.value!.canUpdateTable(id, isTable: true) ? true : state.value!.isChanged,tables: [
-      for (final table in state.value!.tables)
-        if (table.id == id)
-          state.value!.canUpdateTable(id, isTable: true)
-              ? table.onDragEnd(details, state.value!.precision)
-              : table.resetDrag()
-        else
-          table
-    ]));
+    state = AsyncData(state.value!.copyWith(
+        isChanged: state.value!.canUpdateTable(id, isTable: true)
+            ? true
+            : state.value!.isChanged,
+        tables: [
+          for (final table in state.value!.tables)
+            if (table.id == id)
+              state.value!.canUpdateTable(id, isTable: true)
+                  ? table.onDragEnd(details, state.value!.precision)
+                  : table.resetDrag()
+            else
+              table
+        ]));
   }
 
   void onBorderDragStart(DragStartDetails details,
@@ -319,8 +322,9 @@ class PlannerInfo extends _$PlannerInfo {
 
   void onBorderDragEnd(DragEndDetails details, PlannerDirection direction) {
     if (type != AuthType.owner) return;
-    final canUpdate = state.value!
-        .canUpdateTable((state.value!.borders.length - 1).toString(), isTable: false);
+    final canUpdate = state.value!.canUpdateTable(
+        (state.value!.borders.length - 1).toString(),
+        isTable: false);
     final isFirst = state.value!.borders.length == 1;
     state = AsyncData(state.value!.copyWith(
         borders: [
@@ -330,7 +334,9 @@ class PlannerInfo extends _$PlannerInfo {
                 .onDragEnd(details, state.value!.precision),
           if (!canUpdate && isFirst) state.value!.borders.last.resetDrag()
         ],
-        isChanged: canUpdate && state.value!.isBorderFinished() ? true : state.value!.isChanged,
+        isChanged: canUpdate && state.value!.isBorderFinished()
+            ? true
+            : state.value!.isChanged,
         currentAction: canUpdate && state.value!.isBorderFinished()
             ? BoardAction.none
             : (!canUpdate && isFirst
@@ -381,14 +387,17 @@ class PlannerInfo extends _$PlannerInfo {
   void placeNewTable() {
     if (type != AuthType.owner) return;
     if (!state.value!.canUpdateTable("new", isTable: true)) return;
-    state = AsyncData(state.value!.copyWith(isChanged: true,tables: [
-      for (final table in state.value!.tables)
-        if (table.id == "new")
-          table.placeNewTable(
-              state.value!.precision, state.value!.tables.length.toString())
-        else
-          table
-    ], currentAction: BoardAction.none));
+    state = AsyncData(state.value!.copyWith(
+        isChanged: true,
+        tables: [
+          for (final table in state.value!.tables)
+            if (table.id == "new")
+              table.placeNewTable(
+                  state.value!.precision, state.value!.tables.length.toString())
+            else
+              table
+        ],
+        currentAction: BoardAction.none));
   }
 
   void placeBorder() {
@@ -414,7 +423,8 @@ class PlannerInfo extends _$PlannerInfo {
   void placeNewBorder() {
     if (type != AuthType.owner) return;
     if (!state.value!.canUpdateTable(
-        (state.value!.borders.length - 1).toString(), isTable: false)) return;
+        (state.value!.borders.length - 1).toString(),
+        isTable: false)) return;
     state = AsyncData(state.value!.copyWith(borders: [
       ...List.from(state.value!.borders)..removeLast(),
       state.value!.borders.last
@@ -445,7 +455,9 @@ class PlannerInfo extends _$PlannerInfo {
   void removeLastBorder() {
     if (type != AuthType.owner) return;
 
-    state = AsyncData(state.value!.copyWith(borders: List.from(state.value!.borders)..removeLast(),currentAction: BoardAction.chooseBorderType));
+    state = AsyncData(state.value!.copyWith(
+        borders: List.from(state.value!.borders)..removeLast(),
+        currentAction: BoardAction.chooseBorderType));
   }
 
   void selectTable(PlannerTable table) {
@@ -460,13 +472,26 @@ class PlannerInfo extends _$PlannerInfo {
         .copyWith(selectedTable: null, currentAction: BoardAction.none));
   }
 
+  void removeTable() {
+    if (type != AuthType.owner) return;
+    final modifyTable = state.value!.tables[state.value!.selectedTable!];
+    state = AsyncData(state.value!.copyWith(
+        isChanged: true,
+        selectedTable: null,
+        currentAction: BoardAction.none,
+        tables: [
+          for (final table in state.value!.tables)
+            if (table != modifyTable) table
+        ]));
+  }
+
   void modifyChairs(PlannerDirection direction, bool subtract) {
     if (type != AuthType.owner) return;
     if (subtract
         ? !state.value!.canSubtractChairs(direction)
         : !state.value!.canAddChairs(direction)) return;
     final modifyTable = state.value!.tables[state.value!.selectedTable!];
-    state = AsyncData(state.value!.copyWith(isChanged: true,tables: [
+    state = AsyncData(state.value!.copyWith(isChanged: true, tables: [
       for (final table in state.value!.tables)
         if (table == modifyTable)
           table.modifyChairs(direction, state.value!.precision, subtract)
@@ -487,7 +512,7 @@ class PlannerInfo extends _$PlannerInfo {
       }
     }
     fluttertoastDefault("Poprawnie zmodyfikowano identyfikator");
-    state = AsyncData(state.value!.copyWith(isChanged: true,tables: [
+    state = AsyncData(state.value!.copyWith(isChanged: true, tables: [
       for (final table in state.value!.tables)
         if (table == modifyTable) table.copyWith(id: controller.text) else table
     ]));
@@ -525,11 +550,14 @@ class PlannerInfo extends _$PlannerInfo {
           options:
               Options(headers: {"Authorization": "Bearer ${token.jwtToken}"}));
       fluttertoastDefault(response.data['message']);
-      state = AsyncData(state.value!.copyWith(isChanged:false));
+      state = AsyncData(state.value!.copyWith(isChanged: false));
     } on DioException catch (e) {
       if (e.response != null) {
         Map responseBody = e.response!.data;
-        fluttertoastDefault("Wykryto następujące błędy w konfiguracji restauracji:\n${responseBody['detail'].join("\n")}", true,10);
+        fluttertoastDefault(
+            "Wykryto następujące błędy w konfiguracji restauracji:\n${responseBody['detail'].join("\n")}",
+            true,
+            10);
       } else {
         fluttertoastDefault(
             "Coś poszło nie tak. Spróbuj ponownie później", true);
@@ -540,7 +568,8 @@ class PlannerInfo extends _$PlannerInfo {
   Future<void> resetBorders() async {
     final token = ref.read(authProvider).value!;
     try {
-      final response = await Dio().get('${dotenv.env['${type.name.toUpperCase()}_API_URL']!}planner-info',
+      final response = await Dio().get(
+          '${dotenv.env['${type.name.toUpperCase()}_API_URL']!}planner-info',
           options:
               Options(headers: {"Authorization": "Bearer ${token.jwtToken}"}));
       state = AsyncData(state.value!.copyWith(
@@ -558,7 +587,6 @@ class PlannerInfo extends _$PlannerInfo {
   }
 
   Future<void> resetChanges() async {
-  
     ref.invalidateSelf();
     await future;
   }

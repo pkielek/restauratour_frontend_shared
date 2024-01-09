@@ -30,7 +30,7 @@ Map<String, dynamic> _$$PlannerTablesBoardImplToJson(
 // RiverpodGenerator
 // **************************************************************************
 
-String _$plannerInfoHash() => r'd45dcadb3f3199340d78a9d21da53fbaaf3a2880';
+String _$plannerInfoHash() => r'5c7b85702ddf88a98a35d702b578f5a05802516a';
 
 /// Copied from Dart SDK
 class _SystemHash {
