@@ -7,3 +7,4 @@ export 'src/loading.dart';
 export 'src/styles.dart';
 export 'src/default_button.dart';
 export 'src/default_dialog.dart';
+export 'src/email_field.dart';

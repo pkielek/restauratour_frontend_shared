@@ -14,11 +14,12 @@ const inactiveNavigationButtonText = TextStyle(fontWeight: FontWeight.w300, font
 const activeNavigationButtonText = TextStyle(fontWeight: FontWeight.w700, fontSize: 20);
 
 const headerLeftDivider = Divider(color: Colors.black, thickness: 3, endIndent: 10);
+const headerRightDivider = Divider(color: Colors.black, thickness:3, indent: 10);
 const headerDivider = Divider(color: Colors.black, thickness: 3, indent: 10, endIndent: 10);
 
-InputDecoration defaultDecoration({required IconData icon, required String labelText}) {
+InputDecoration defaultDecoration({IconData? icon, required String labelText}) {
   return InputDecoration(
-          icon: Icon(
+          icon: icon == null ? null : Icon(
             icon,
             color: Colors.black,
           ),
