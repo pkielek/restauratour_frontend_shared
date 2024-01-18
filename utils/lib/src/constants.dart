@@ -44,10 +44,12 @@ void fluttertoastDefault(String message,
     [bool error = false, int timeInSec = 3]) {
   final String color = error ? '#f44336' : '#4caf50';
   Fluttertoast.showToast(
+      toastLength: Toast.LENGTH_LONG,
       msg: message,
       gravity: ToastGravity.TOP,
       timeInSecForIosWeb: timeInSec,
-      webBgColor: color);
+      webBgColor: color,
+      backgroundColor: error? primaryColor : Colors.green);
 }
 
 final Future<SharedPreferences> prefs = SharedPreferences.getInstance();
@@ -150,6 +152,27 @@ String getWeekdayName(int weekNumber) {
       return 'Sobota';
     case 6:
       return 'Niedziela';
+    default:
+      return '';
+  }
+}
+
+String getWeekdayNameShort(int weekNumber) {
+  switch(weekNumber) {
+    case 0:
+      return 'Pn';
+    case 1:
+      return 'Wt';
+    case 2:
+      return 'Śr';
+    case 3:
+      return 'Cz';
+    case 4:
+      return 'Pt';
+    case 5:
+      return 'Sb';
+    case 6:
+      return 'Nd';
     default:
       return '';
   }

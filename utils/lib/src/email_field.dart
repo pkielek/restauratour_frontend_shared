@@ -20,6 +20,8 @@ class EmailField extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return TextFormField(
+        keyboardType: TextInputType.emailAddress,
+        textInputAction: TextInputAction.next,
         autovalidateMode: AutovalidateMode.onUserInteraction,
         initialValue: initialValue,
         controller: controller,

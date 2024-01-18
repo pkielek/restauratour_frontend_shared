@@ -97,6 +97,17 @@ class PlannerTablesBoard with _$PlannerTablesBoard {
     return BoardStatus.standard;
   }
 
+  Size get maxConstraints {
+    double maxRight = 0;
+    double maxBottom = 0;
+    for(final obj in [...tables,...borders]) {
+      if(obj.toRect(precision).right > maxRight) maxRight = obj.toRect(precision).right;
+      if(obj.toRect(precision).bottom > maxBottom) maxBottom = obj.toRect(precision).bottom;
+    }
+    return Size(maxRight*1.2,maxBottom*1.2);
+  }
+
+
   bool canUpdateTable(String id, {required bool isTable}) {
     final PlannerObject data = isTable
         ? tables.where((element) => element.id == id).first
@@ -223,6 +234,7 @@ class PlannerTablesBoard with _$PlannerTablesBoard {
   bool isSelectedTable(PlannerTable table) {
     return table == tables.elementAtOrNull(selectedTable ?? tables.length);
   }
+
 }
 
 @riverpod

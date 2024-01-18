@@ -3,7 +3,6 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:planner/planner.dart';
 import 'package:auth/auth.dart';
 
-
 class PlannerBoard extends ConsumerWidget {
   const PlannerBoard({super.key, required this.board, required this.notifier});
   final PlannerTablesBoard board;
@@ -66,55 +65,70 @@ class PlannerBoard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return LayoutBuilder(builder: (context, constraints) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => notifier
-          .updateConstraints(constraints));
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => notifier.updateConstraints(constraints));
       return InteractiveViewer(
+        alignment: Alignment.center,
+
+        constrained: notifier.type == AuthType.owner,
+        clipBehavior:
+            notifier.type == AuthType.owner ? Clip.hardEdge : Clip.none,
+        scaleEnabled: false,
         child: GridPaper(
             color: Colors.black.withAlpha(15),
             divisions: 1,
             subdivisions: 1,
             interval: board.precision < 0 ? 15 : board.precision,
-            child: GestureDetector(
-              onTap: notifier.type != AuthType.owner
-                  ? null
-                  : board.currentAction == BoardAction.addTable
-                      ? notifier.placeNewTable
-                      : (board.currentAction == BoardAction.placeBorder
-                          ? notifier
-                              .placeNewBorder
-                          : (board.currentAction == BoardAction.tableInfo
-                              ? notifier
-                                  .deselectTable
-                              : null)),
-              child: MouseRegion(
-                onHover: notifier.type != AuthType.owner
+            child: SizedBox(
+              width: notifier.type == AuthType.owner || constraints.maxWidth > board.maxConstraints.width
+                  ? constraints.maxWidth
+                  : board.maxConstraints.width,
+              height: notifier.type == AuthType.owner || constraints.maxHeight > board.maxConstraints.height
+                  ? constraints.maxHeight
+                  : board.maxConstraints.height,
+              child: GestureDetector(
+                onTap: notifier.type != AuthType.owner
                     ? null
-                    : (board.currentAction == BoardAction.addTable
-                        ? notifier.updateAddTable
+                    : board.currentAction == BoardAction.addTable
+                        ? notifier.placeNewTable
                         : (board.currentAction == BoardAction.placeBorder
-                            ? notifier
-                                .updatePlaceBorder
-                            : null)),
-                cursor: notifier.type != AuthType.owner
-                    ? MouseCursor.defer
-                    : board.currentAction?.cursor ?? MouseCursor.defer,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    ...board.tables.map(
-                      (e) => PlannerTableUI(data: e, board: board, notifier: notifier,),
-                    ),
-                    if (notifier.type == AuthType.owner &&
-                        board.status == BoardStatus.uninitialized)
-                      ...getUninitalizedBoardShapes(
-                          constraints, board.precision),
-                    ...board.borders.indexed.map((entry) => PlannerBorderUI(
-                          data: entry.$2,
+                            ? notifier.placeNewBorder
+                            : (board.currentAction == BoardAction.tableInfo
+                                ? notifier.deselectTable
+                                : null)),
+                child: MouseRegion(
+                  onHover: notifier.type != AuthType.owner
+                      ? null
+                      : (board.currentAction == BoardAction.addTable
+                          ? notifier.updateAddTable
+                          : (board.currentAction == BoardAction.placeBorder
+                              ? notifier.updatePlaceBorder
+                              : null)),
+                  cursor: notifier.type != AuthType.owner
+                      ? MouseCursor.defer
+                      : board.currentAction?.cursor ?? MouseCursor.defer,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      ...board.tables.map(
+                        (e) => PlannerTableUI(
+                          data: e,
                           board: board,
                           notifier: notifier,
-                          index: entry.$1,
-                        ))
-                  ],
+                        ),
+                      ),
+                      if (notifier.type == AuthType.owner &&
+                          board.status == BoardStatus.uninitialized)
+                        ...getUninitalizedBoardShapes(
+                            constraints, board.precision),
+                      ...board.borders.indexed.map((entry) => PlannerBorderUI(
+                            data: entry.$2,
+                            board: board,
+                            notifier: notifier,
+                            index: entry.$1,
+                          ))
+                    ],
+                  ),
                 ),
               ),
             )),
