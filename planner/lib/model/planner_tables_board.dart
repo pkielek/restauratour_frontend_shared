@@ -81,6 +81,8 @@ class PlannerTablesBoard with _$PlannerTablesBoard {
           @JsonKey(ignore: true)
           @Default(BoxConstraints())
           BoxConstraints constraints,
+          @Default([]) @JsonKey(ignore: true) List<String> allowedTables,
+          @Default(null) @JsonKey(ignore: true) Function(PlannerTable)? onSelectTable,
           @JsonKey(ignore: true) @Default(false) bool isChanged}) =
       _PlannerTablesBoard;
 
@@ -100,13 +102,14 @@ class PlannerTablesBoard with _$PlannerTablesBoard {
   Size get maxConstraints {
     double maxRight = 0;
     double maxBottom = 0;
-    for(final obj in [...tables,...borders]) {
-      if(obj.toRect(precision).right > maxRight) maxRight = obj.toRect(precision).right;
-      if(obj.toRect(precision).bottom > maxBottom) maxBottom = obj.toRect(precision).bottom;
+    for (final obj in [...tables, ...borders]) {
+      if (obj.toRect(precision).right > maxRight)
+        maxRight = obj.toRect(precision).right;
+      if (obj.toRect(precision).bottom > maxBottom)
+        maxBottom = obj.toRect(precision).bottom;
     }
-    return Size(maxRight*1.2,maxBottom*1.2);
+    return Size(maxRight * 1.2, maxBottom * 1.2);
   }
-
 
   bool canUpdateTable(String id, {required bool isTable}) {
     final PlannerObject data = isTable
@@ -234,7 +237,6 @@ class PlannerTablesBoard with _$PlannerTablesBoard {
   bool isSelectedTable(PlannerTable table) {
     return table == tables.elementAtOrNull(selectedTable ?? tables.length);
   }
-
 }
 
 @riverpod
@@ -248,6 +250,7 @@ class PlannerInfo extends _$PlannerInfo {
     try {
       final response = await Dio().get(
           '${dotenv.env['${type.name.toUpperCase()}_API_URL']!}planner-info',
+          queryParameters: type == AuthType.user ? {"restaurant_id": restaurantID} : null,
           options:
               Options(headers: {"Authorization": "Bearer ${token.jwtToken}"}));
       return PlannerTablesBoard.fromJson(response.data);
@@ -262,6 +265,7 @@ class PlannerInfo extends _$PlannerInfo {
   }
 
   void updateConstraints(BoxConstraints constraints) {
+    if (state.value!.constraints == constraints) return;
     state = AsyncData(state.value!.copyWith(constraints: constraints));
   }
 
@@ -472,8 +476,18 @@ class PlannerInfo extends _$PlannerInfo {
         currentAction: BoardAction.chooseBorderType));
   }
 
+  void customSelectTable(PlannerTable table) {
+    if(state.value!.onSelectTable != null) {
+      state.value!.onSelectTable!(table);
+    }
+  }
+
+  void updateCustomSelectTable(void Function(PlannerTable)? fn) {
+    state = AsyncData(state.value!.copyWith(onSelectTable: fn));
+  }
+
   void selectTable(PlannerTable table) {
-    state = AsyncData(state.value!.copyWith(
+     state = AsyncData(state.value!.copyWith(
         selectedTable: state.value!.tables.indexOf(table),
         currentAction: BoardAction.tableInfo));
   }
@@ -585,7 +599,7 @@ class PlannerInfo extends _$PlannerInfo {
           options:
               Options(headers: {"Authorization": "Bearer ${token.jwtToken}"}));
       state = AsyncData(state.value!.copyWith(
-          borders: PlannerTablesBoard.fromJson(response.data).borders));
+          borders: PlannerTablesBoard.fromJson(response.data).borders, currentAction: BoardAction.none));
     } on DioException catch (e) {
       if (e.response != null) {
         Map responseBody = e.response!.data;
@@ -593,6 +607,42 @@ class PlannerInfo extends _$PlannerInfo {
       } else {
         fluttertoastDefault(
             "Coś poszło nie tak przy wczytywaniu dotychczasowych granic. Spróbuj ponownie później lub odśwież stronę",
+            true);
+      }
+    }
+  }
+
+  void resetAllowedTables() {
+    state = AsyncData(state.value!.copyWith(allowedTables: []));
+  }
+
+  Future<void> updateAllowedTables(DateTime date, int guestsAmount, bool reservationsEnabled) async {
+    final token = ref.read(authProvider).value!;
+    try {
+      final response = await Dio().get(
+          '${dotenv.env['USER_API_URL']!}available-tables-for-time',
+          queryParameters: {
+            "guests_amount": guestsAmount,
+            "restaurant_id": restaurantID,
+            "date": date.toIso8601String()
+          },
+          options:
+              Options(headers: {"Authorization": "Bearer ${token.jwtToken}"}));
+      final tables =
+          (response.data as List<dynamic>).map((e) => e.toString()).toList();
+
+      state = AsyncData(state.value!.copyWith(allowedTables: tables));
+      if(reservationsEnabled) {
+        fluttertoastDefault("Wybierz stolik (zielony) do zarezerwowania");
+      }
+    } on DioException catch (e) {
+      print(e.response);
+      if (e.response != null) {
+        Map responseBody = e.response!.data;
+        fluttertoastDefault(responseBody['detail'], true);
+      } else {
+        fluttertoastDefault(
+            "Coś poszło nie tak przy wczytywaniu dostępnych stolików. Spróbuj ponownie później",
             true);
       }
     }

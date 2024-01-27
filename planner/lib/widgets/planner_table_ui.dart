@@ -4,7 +4,11 @@ import 'package:planner/planner.dart';
 import 'package:auth/auth.dart';
 
 class PlannerTableUI extends ConsumerWidget {
-  const PlannerTableUI({super.key, required this.data, required this.board, required this.notifier});
+  const PlannerTableUI(
+      {super.key,
+      required this.data,
+      required this.board,
+      required this.notifier});
   final PlannerTablesBoard board;
   final PlannerInfo notifier;
   final PlannerTable data;
@@ -12,18 +16,27 @@ class PlannerTableUI extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final BoxDecoration decoration = BoxDecoration(
-        color: board.isSelectedTable(data) ? Colors.green : Colors.red,
+        color: notifier.type == AuthType.user && board.allowedTables.isNotEmpty
+            ? (board.allowedTables.contains(data.id)
+                ? Colors.green
+                : Colors.red)
+            : board.isSelectedTable(data)
+                ? Colors.green
+                : Colors.red,
         border: Border.all(color: Colors.black, width: 2));
     final Container chair = Container(
-        width:board.precision,
-        height:board.precision,
+        width: board.precision,
+        height: board.precision,
         decoration: BoxDecoration(
             color: Colors.blue,
             border: Border.all(color: Colors.black, width: 1),
             borderRadius: BorderRadius.circular(50)));
 
-    final uneditableTableWidget =
-        notifier.type != AuthType.owner ? Container(decoration: decoration) : null;
+    final uneditableTableWidget = notifier.type != AuthType.owner
+        ? GestureDetector(
+            onTap: () => notifier.customSelectTable(data),
+            child: Container(decoration: decoration))
+        : null;
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -33,7 +46,10 @@ class PlannerTableUI extends ConsumerWidget {
             child: MouseRegion(
               cursor: data.currentAction.cursor,
               child: Opacity(
-                  opacity: !data.isDragged || board.canUpdateTable(data.id, isTable: true) ? 1 : 0,
+                  opacity: !data.isDragged ||
+                          board.canUpdateTable(data.id, isTable: true)
+                      ? 1
+                      : 0,
                   child: Container(
                     decoration: decoration,
                   )),
@@ -51,7 +67,7 @@ class PlannerTableUI extends ConsumerWidget {
         if (data.seatsBottom > 0)
           Positioned(
               left: data.left,
-              top: data.top+data.height,
+              top: data.top + data.height,
               width: data.width,
               height: board.precision,
               child: Row(
@@ -84,15 +100,17 @@ class PlannerTableUI extends ConsumerWidget {
                     MouseRegion(
                       cursor: data.currentAction.cursor,
                       child: GestureDetector(
-                        onTap: board.currentAction == BoardAction.none ? () => notifier.selectTable(data) : null,
+                        onTap: board.currentAction == BoardAction.none
+                            ? () => notifier.selectTable(data)
+                            : null,
                         onPanStart: board.selectedTable != null
                             ? null
-                            : (details) => notifier.onTableDragStart(
-                                data.id, details),
+                            : (details) =>
+                                notifier.onTableDragStart(data.id, details),
                         onPanUpdate: board.selectedTable != null
                             ? null
-                            : (details) => notifier.onTableDragUpdate(
-                                data.id, details),
+                            : (details) =>
+                                notifier.onTableDragUpdate(data.id, details),
                         onPanEnd: board.selectedTable != null
                             ? null
                             : (details) =>

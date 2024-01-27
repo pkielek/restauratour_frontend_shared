@@ -24,12 +24,12 @@ class RegisterInfo with _$RegisterInfo {
 @riverpod
 class Register extends _$Register {
   @override
-  RegisterInfo build(AuthType type) {
+  RegisterInfo build(AuthType type, [bool userUpdate = false]) {
     return RegisterInfo(
         password: "",
         confirmPassword: "",
         email: type == AuthType.owner ? null : "",
-        name: type == AuthType.user ? "" : null,
+        name: type == AuthType.user && !userUpdate ? "" : null,
         accessKey: type == AuthType.worker ? "" : null);
   }
 
@@ -69,24 +69,24 @@ class Register extends _$Register {
           "Hasło nie spełnia wymagań - odnieś się do błędów pod polami", true);
       return false;
     }
-    if (type != AuthType.owner && !state.email!.isValidEmail()) {
+    if (type != AuthType.owner && !userUpdate && !state.email!.isValidEmail()) {
       fluttertoastDefault("Ustaw poprawny adres e-mail", true);
       return false;
     }
-    if (type == AuthType.user && state.name!.length < 3) {
+    if (type == AuthType.user && !userUpdate  && state.name!.length < 3) {
       fluttertoastDefault("Ustaw poprawne imię", true);
       return false;
     }
     try {
       final response = await Dio().post(
-          '${dotenv.env['${type.name.toUpperCase()}_API_URL']!}${type == AuthType.user ? 'register' : 'update-password'}',
-          data: type == AuthType.owner
+          '${dotenv.env['${type.name.toUpperCase()}_API_URL']!}${type == AuthType.user && !userUpdate ? 'register' : 'update-password'}',
+          data: type == AuthType.owner || userUpdate
               ? {
                   "new_password": state.password,
                   "confirm_password": state.confirmPassword
                 }
               : state.toJson(),
-          options: type != AuthType.owner
+          options: type != AuthType.owner && !userUpdate
               ? null
               : Options(headers: {
                   "Authorization":

@@ -15,6 +15,7 @@ dependencies:
   flutter_hooks: ^0.20.3
   crop_image: ^1.0.11
   image_picker: ^1.0.4
+  intl: ^0.18.1
 
 dev_dependencies:
   flutter_test:

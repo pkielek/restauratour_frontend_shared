@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:intl/intl.dart';
 
 const primaryColor = Color(0xffa30015);
 const primarySwatch = MaterialColor(0xffa30015, <int, Color>{
@@ -79,6 +80,31 @@ extension EmailValidator on String {
             r'^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$')
         .hasMatch(this);
   }
+}
+
+extension DateUtils on DateTime {
+
+
+  String fullMonth() {
+    return toString().substring(5,7);
+  }
+
+  String fullDay() {
+    return toString().substring(8,10);
+  }
+
+  String fullDate() {
+    return toString().substring(0,10);
+  }
+
+  String fullHour() {
+    return toString().substring(11, 16);
+  }
+  
+  String month3Chars() {
+    return DateFormat.MMM('pl').format(this);
+  }
+
 }
 
 void uploadRestaurantFile(

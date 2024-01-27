@@ -99,7 +99,7 @@ class Info extends _$Info {
     try {
       final response = await Dio().get(
           '${dotenv.env['${ref.read(authProvider).value!.authType.name.toUpperCase()}_API_URL']!}restaurant-info',
-          data: restaurantId != null
+          queryParameters: restaurantId != null
               ? {"restaurant_id": restaurantId}
               : null,
           options:
