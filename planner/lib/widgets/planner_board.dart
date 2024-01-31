@@ -4,9 +4,10 @@ import 'package:planner/planner.dart';
 import 'package:auth/auth.dart';
 
 class PlannerBoard extends ConsumerWidget {
-  const PlannerBoard({super.key, required this.board, required this.notifier});
+  const PlannerBoard({super.key, required this.board, required this.notifier, this.explicitColors = const {}});
   final PlannerTablesBoard board;
   final PlannerInfo notifier;
+  final Map<String,Color> explicitColors;
 
   List<Widget> getUninitalizedBoardShapes(
       BoxConstraints constraints, double precision) {
@@ -88,7 +89,7 @@ class PlannerBoard extends ConsumerWidget {
                   : board.maxConstraints.height,
               child: GestureDetector(
                 onTap: notifier.type != AuthType.owner
-                    ? null
+                    ? (notifier.type == AuthType.worker && board.currentAction == BoardAction.tableInfo ? notifier.deselectTable : null)
                     : board.currentAction == BoardAction.addTable
                         ? notifier.placeNewTable
                         : (board.currentAction == BoardAction.placeBorder
@@ -115,6 +116,7 @@ class PlannerBoard extends ConsumerWidget {
                           data: e,
                           board: board,
                           notifier: notifier,
+                          workerColor: explicitColors[e.id],
                         ),
                       ),
                       if (notifier.type == AuthType.owner &&

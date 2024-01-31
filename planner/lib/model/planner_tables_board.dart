@@ -123,14 +123,14 @@ class PlannerTablesBoard with _$PlannerTablesBoard {
       {required bool isTable}) {
     for (final table in tables) {
       if ((!isTable || table.id != id) &&
-          data.toNewRect(precision).overlaps(table.applyTablesToCollision(
+          data.toNewCollisionRect(precision).overlaps(table.applyTablesToCollision(
               table.toNewRect(precision), precision))) {
         return false;
       }
     }
     for (final (i, border) in borders.indexed) {
       if ((isTable || i != int.parse(id)) &&
-          data.toNewRect(precision).overlaps(border.toRect(precision))) {
+          data.toNewCollisionRect(precision).overlaps(border.toRect(precision))) {
         return false;
       }
     }
@@ -493,7 +493,6 @@ class PlannerInfo extends _$PlannerInfo {
   }
 
   void deselectTable() {
-    if (type != AuthType.owner) return;
     state = AsyncData(state.value!
         .copyWith(selectedTable: null, currentAction: BoardAction.none));
   }
@@ -555,6 +554,7 @@ class PlannerInfo extends _$PlannerInfo {
               Options(headers: {"Authorization": "Bearer ${token.jwtToken}"}));
       state = AsyncData(state.value!.copyWith(currentAction: BoardAction.none));
       fluttertoastDefault(response.data['message']);
+      ref.invalidateSelf();
     } on DioException catch (e) {
       if (e.response != null) {
         Map responseBody = e.response!.data;

@@ -21,7 +21,7 @@ class PlannerPanelPlaceBorder extends ConsumerWidget {
           const Text("Witaj w RestauraTOUR",
               style: headerStyle, textAlign: TextAlign.center),
           Text(
-              placed ? "Poszerz ${notFirst ? "kolejną" : "pierwszą"} ścianę granicy pociągając za odpowiednią stronę" : "Ustaw nowy stolik w wybranym miejscu",
+              placed ? "Poszerz ${notFirst ? "kolejną" : "pierwszą"} ścianę granicy pociągając za odpowiednią stronę" : "Ustaw początek granicy",
               style: const TextStyle(color: Colors.black, fontSize: 16),
               textAlign: TextAlign.center)
         ]),

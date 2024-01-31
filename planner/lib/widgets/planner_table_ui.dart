@@ -2,27 +2,34 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:planner/planner.dart';
 import 'package:auth/auth.dart';
+import 'package:simple_animations/animation_builder/mirror_animation_builder.dart';
 
 class PlannerTableUI extends ConsumerWidget {
   const PlannerTableUI(
       {super.key,
       required this.data,
       required this.board,
-      required this.notifier});
+      required this.notifier,
+      this.workerColor});
   final PlannerTablesBoard board;
   final PlannerInfo notifier;
+  final Color? workerColor;
   final PlannerTable data;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final BoxDecoration decoration = BoxDecoration(
-        color: notifier.type == AuthType.user && board.allowedTables.isNotEmpty
-            ? (board.allowedTables.contains(data.id)
+        color: workerColor ??
+            (notifier.type == AuthType.worker
                 ? Colors.green
-                : Colors.red)
-            : board.isSelectedTable(data)
-                ? Colors.green
-                : Colors.red,
+                : notifier.type == AuthType.user &&
+                        board.allowedTables.isNotEmpty
+                    ? (board.allowedTables.contains(data.id)
+                        ? Colors.green
+                        : Colors.red)
+                    : board.isSelectedTable(data)
+                        ? Colors.green
+                        : Colors.red),
         border: Border.all(color: Colors.black, width: 2));
     final Container chair = Container(
         width: board.precision,
@@ -34,8 +41,15 @@ class PlannerTableUI extends ConsumerWidget {
 
     final uneditableTableWidget = notifier.type != AuthType.owner
         ? GestureDetector(
-            onTap: () => notifier.customSelectTable(data),
-            child: Container(decoration: decoration))
+            onTap: () => notifier.type == AuthType.worker ? notifier.selectTable(data) : notifier.customSelectTable(data),
+            child: decoration.color == Colors.transparent
+                ? MirrorAnimationBuilder(
+                    builder: (context, value, child) => Container(
+                        decoration: decoration.copyWith(color: value)),
+                    tween: ColorTween(
+                        begin: Colors.red.shade800, end: Colors.red.shade200),
+                    duration: const Duration(milliseconds: 500))
+                : Container(decoration: decoration))
         : null;
     return Stack(
       fit: StackFit.expand,

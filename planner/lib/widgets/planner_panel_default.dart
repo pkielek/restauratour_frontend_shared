@@ -67,7 +67,7 @@ class PlannerPanelDefault extends ConsumerWidget {
             resetDuration: const Duration(seconds: 2),
             width: 2000,
             controller: _submitController,
-            onPressed: () => board.status == BoardStatus.empty
+            onPressed: () => board.status == BoardStatus.empty || board.status == BoardStatus.uninitialized
                 ? ref
                     .read(PlannerInfoProvider(AuthType.owner).notifier)
                     .savePrecision()
